@@ -1,41 +1,57 @@
 const express = require('express');
-
+const date = require(__dirname + '/date.js');
 const app = express();
 
-var items = ["Buy Food", "Cook Food", "Eat Food"];
+const items = ["Buy Food", "Cook Food", "Eat Food"];
+const workItems = [];
 
 // allows use of req.body
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// this line allows us to use a static directory for our css/js files
+app.use(express.static('public'));
 app.set('view engine', 'ejs');
 
 // app.get('/', (req, res) => {
 //     res.render('index', {foo: 'FOO' });
 // });
 
-app.get('/', function(req, res) {
+app.get('/', function (req, res) {
 
-    var today = new Date();
+    let day = date.getDate();
+    
 
-    var options = {
-        weekday: 'long',
-        day: 'numeric',
-        month: 'long'
-    };
-
-    var day = today.toLocaleDateString('en-US', options);
-
-    res.render('list', {kindOfDay: day, newListItems: items}); 
-
-    app.post('/', function(req, res) { // when a post request is triggered on home route, the value of newItem will be saved into variable called item and will redirect to the home route
-        let item = req.body.newItem
-        
-        items.push(item);
-        res.redirect('/');
-    })
+    res.render('list', { listTitle: day, newListItems: items });
 });
 
-app.listen(3000, function(){
+app.post('/', function (req, res) { // when a post request is triggered on home route, the value of newItem will be saved into variable called item and will redirect to the home route
+    let item = req.body.newItem
+    
+    if (req.body.list === "Work") {
+        workItems.push(item);
+        res.redirect('/work');
+    } else {
+        items.push(item);
+        res.redirect('/');
+    }
+
+})
+
+app.get('/work', (req, res) => {
+    res.render('list', { listTitle: "Work List", newListItems: workItems })
+})
+
+app.get('/about', (req, res) => {
+    res.render('about')
+})
+
+app.post('/work', (req, res) => {
+    let item = req.body.newItem;
+    workItems.push(item);
+    res.redirect('/work');
+})
+
+app.listen(3000, function () {
     console.log('Server listening on 3000.');
 });
